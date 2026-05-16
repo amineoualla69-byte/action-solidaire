@@ -1,0 +1,940 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Action! Solidaire — Dashboard IDF / Nord | Amine OUALLA</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+  :root {
+    --navy: #1B2A3B;
+    --navy-mid: #243447;
+    --navy-light: #2E4060;
+    --gold: #E8A020;
+    --gold-light: #F5C060;
+    --gold-faint: rgba(232,160,32,0.12);
+    --green: #2D9E6B;
+    --green-light: #E6F7F0;
+    --red: #C94040;
+    --red-light: #FAEAEA;
+    --blue: #2B6CB8;
+    --blue-light: #EBF2FC;
+    --purple: #6B4FA8;
+    --purple-light: #F0EBFA;
+    --text-primary: #1B2A3B;
+    --text-secondary: #5A6A7A;
+    --text-muted: #8A9AAA;
+    --bg-page: #F2F4F7;
+    --bg-card: #FFFFFF;
+    --bg-sidebar: #1B2A3B;
+    --border: rgba(0,0,0,0.08);
+    --radius: 12px;
+    --radius-sm: 8px;
+    --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 4px 12px rgba(0,0,0,0.04);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: var(--bg-page);
+    color: var(--text-primary);
+    min-height: 100vh;
+    display: flex;
+  }
+
+  /* === SIDEBAR === */
+  .sidebar {
+    width: 240px;
+    min-height: 100vh;
+    background: var(--navy);
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+  }
+
+  .sidebar-brand {
+    padding: 28px 20px 20px;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+  }
+
+  .brand-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--gold);
+    color: var(--navy);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    padding: 4px 10px;
+    border-radius: 20px;
+    margin-bottom: 10px;
+  }
+
+  .brand-title {
+    font-size: 17px;
+    font-weight: 700;
+    color: #fff;
+    line-height: 1.3;
+  }
+
+  .brand-sub {
+    font-size: 11px;
+    color: rgba(255,255,255,0.45);
+    margin-top: 4px;
+  }
+
+  .sidebar-nav {
+    padding: 16px 0;
+    flex: 1;
+  }
+
+  .nav-section-label {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    color: rgba(255,255,255,0.3);
+    text-transform: uppercase;
+    padding: 12px 20px 4px;
+  }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 20px;
+    cursor: pointer;
+    border-radius: 0;
+    transition: background 0.15s;
+    color: rgba(255,255,255,0.6);
+    font-size: 13.5px;
+    border-left: 3px solid transparent;
+  }
+
+  .nav-item:hover { background: rgba(255,255,255,0.06); color: #fff; }
+  .nav-item.active { background: rgba(232,160,32,0.12); color: var(--gold); border-left-color: var(--gold); }
+
+  .nav-icon {
+    width: 18px;
+    height: 18px;
+    opacity: 0.8;
+    flex-shrink: 0;
+  }
+
+  .sidebar-footer {
+    padding: 16px 20px;
+    border-top: 1px solid rgba(255,255,255,0.08);
+  }
+
+  .author-chip {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .author-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--gold);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--navy);
+    flex-shrink: 0;
+  }
+
+  .author-name { font-size: 12px; font-weight: 600; color: #fff; }
+  .author-role { font-size: 10px; color: rgba(255,255,255,0.4); }
+
+  /* === MAIN === */
+  .main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  /* === TOPBAR === */
+  .topbar {
+    background: var(--bg-card);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 28px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+
+  .topbar-title { font-size: 16px; font-weight: 600; }
+  .topbar-meta { font-size: 12px; color: var(--text-secondary); }
+
+  .topbar-actions { display: flex; align-items: center; gap: 10px; }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 14px;
+    border-radius: var(--radius-sm);
+    font-size: 12.5px;
+    font-weight: 500;
+    cursor: pointer;
+    border: 1px solid var(--border);
+    background: var(--bg-card);
+    color: var(--text-primary);
+    transition: all 0.15s;
+    text-decoration: none;
+  }
+
+  .btn:hover { background: var(--bg-page); }
+  .btn-gold { background: var(--gold); border-color: var(--gold); color: var(--navy); font-weight: 600; }
+  .btn-gold:hover { background: var(--gold-light); border-color: var(--gold-light); }
+
+  /* === CONTENT === */
+  .content { padding: 24px 28px; flex: 1; }
+
+  .section { display: none; }
+  .section.active { display: block; }
+
+  /* === KPI GRID === */
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+    margin-bottom: 24px;
+  }
+
+  .kpi-card {
+    background: var(--bg-card);
+    border-radius: var(--radius);
+    padding: 18px 20px;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .kpi-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 4px; height: 100%;
+  }
+  .kpi-card.gold::before { background: var(--gold); }
+  .kpi-card.green::before { background: var(--green); }
+  .kpi-card.blue::before { background: var(--blue); }
+  .kpi-card.purple::before { background: var(--purple); }
+
+  .kpi-label { font-size: 11px; font-weight: 600; color: var(--text-muted); letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 8px; }
+  .kpi-value { font-size: 28px; font-weight: 700; line-height: 1; margin-bottom: 6px; }
+  .kpi-card.gold .kpi-value { color: var(--gold); }
+  .kpi-card.green .kpi-value { color: var(--green); }
+  .kpi-card.blue .kpi-value { color: var(--blue); }
+  .kpi-card.purple .kpi-value { color: var(--purple); }
+  .kpi-sub { font-size: 11.5px; color: var(--text-secondary); }
+  .kpi-trend { display: inline-flex; align-items: center; gap: 3px; font-size: 11px; font-weight: 600; }
+  .kpi-trend.up { color: var(--green); }
+  .kpi-trend.down { color: var(--red); }
+
+  /* === CHART GRID === */
+  .chart-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 14px;
+    margin-bottom: 24px;
+  }
+
+  .card {
+    background: var(--bg-card);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border);
+  }
+
+  .card-header {
+    padding: 16px 20px 12px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .card-title { font-size: 13.5px; font-weight: 600; }
+  .card-body { padding: 16px 20px; }
+
+  /* === BADGE === */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+
+  .badge-green { background: var(--green-light); color: #1a6b48; }
+  .badge-blue { background: var(--blue-light); color: #1a4d8c; }
+  .badge-red { background: var(--red-light); color: #8c2020; }
+  .badge-gold { background: var(--gold-faint); color: #8c5500; }
+  .badge-gray { background: #F0F2F5; color: #6A7A8A; }
+
+  /* === TABLE === */
+  .data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .data-table th { font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em; padding: 0 12px 10px; text-align: left; border-bottom: 1px solid var(--border); }
+  .data-table td { padding: 11px 12px; border-bottom: 1px solid rgba(0,0,0,0.04); vertical-align: middle; }
+  .data-table tr:last-child td { border-bottom: none; }
+  .data-table tr:hover td { background: rgba(0,0,0,0.015); }
+
+  /* === KANBAN === */
+  .kanban { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+  .kanban-col { background: var(--bg-page); border-radius: var(--radius); padding: 14px; }
+  .kanban-col-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+  .kanban-col-title { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; }
+  .kanban-count { background: var(--navy); color: #fff; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 20px; }
+
+  .mission-card {
+    background: var(--bg-card);
+    border-radius: var(--radius-sm);
+    padding: 12px 14px;
+    margin-bottom: 8px;
+    border: 1px solid var(--border);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  }
+
+  .mission-title { font-size: 12.5px; font-weight: 600; margin-bottom: 6px; line-height: 1.4; }
+  .mission-assoc { font-size: 11px; color: var(--text-secondary); margin-bottom: 8px; }
+  .mission-meta { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+  .mission-tag { font-size: 10px; background: var(--bg-page); color: var(--text-secondary); padding: 2px 8px; border-radius: 4px; }
+  .mission-fill { font-size: 11px; font-weight: 600; }
+  .fill-full { color: var(--green); }
+  .fill-mid { color: var(--gold); }
+  .fill-low { color: var(--red); }
+
+  /* === REFERENTS TABLE === */
+  .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
+  .status-dot.active { background: var(--green); }
+  .status-dot.inactive { background: #CCC; }
+
+  /* === FILTERS === */
+  .filters { display: flex; align-items: center; gap: 8px; margin-bottom: 18px; flex-wrap: wrap; }
+  .filter-select {
+    padding: 6px 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-size: 12.5px;
+    background: var(--bg-card);
+    color: var(--text-primary);
+    cursor: pointer;
+  }
+
+  .filter-label { font-size: 12px; color: var(--text-secondary); }
+
+  /* === PROGRESS BAR === */
+  .progress-bar { background: var(--bg-page); border-radius: 4px; height: 6px; overflow: hidden; }
+  .progress-fill { height: 100%; border-radius: 4px; }
+
+  /* === ASSOC GRID === */
+  .assoc-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+
+  .assoc-card {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 14px;
+  }
+
+  .assoc-name { font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+  .assoc-thema { font-size: 11px; color: var(--text-secondary); margin-bottom: 10px; }
+  .assoc-stats { display: flex; gap: 16px; }
+  .assoc-stat-label { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em; }
+  .assoc-stat-value { font-size: 15px; font-weight: 700; color: var(--text-primary); }
+  .stars { color: var(--gold); font-size: 11px; }
+
+  /* Tabs */
+  .tab-bar { display: flex; gap: 2px; margin-bottom: 20px; border-bottom: 2px solid var(--border); }
+  .tab { padding: 10px 18px; font-size: 13px; font-weight: 500; cursor: pointer; color: var(--text-secondary); border-bottom: 2px solid transparent; margin-bottom: -2px; transition: all 0.15s; }
+  .tab.active { color: var(--navy); border-bottom-color: var(--gold); font-weight: 600; }
+  .tab:hover { color: var(--text-primary); }
+
+  /* About section */
+  .about-hero {
+    background: var(--navy);
+    border-radius: var(--radius);
+    padding: 32px;
+    color: #fff;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 28px;
+  }
+  .about-avatar {
+    width: 72px; height: 72px;
+    border-radius: 50%;
+    background: var(--gold);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 24px; font-weight: 700; color: var(--navy);
+    flex-shrink: 0;
+  }
+  .about-name { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+  .about-role { font-size: 14px; color: rgba(255,255,255,0.65); margin-bottom: 12px; }
+  .about-contacts { display: flex; gap: 12px; flex-wrap: wrap; }
+  .about-contact-item { font-size: 12px; color: rgba(255,255,255,0.75); display: flex; align-items: center; gap: 5px; }
+
+  .skills-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 20px; }
+  .skill-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 14px 16px; }
+  .skill-cat { font-size: 10px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px; }
+  .skill-tag { display: inline-block; background: var(--bg-page); border-radius: 4px; padding: 3px 8px; font-size: 11.5px; margin: 2px; }
+
+  @media (max-width: 900px) {
+    .sidebar { width: 56px; }
+    .brand-title, .brand-sub, .nav-item span, .author-name, .author-role, .brand-badge, .nav-section-label { display: none; }
+    .nav-item { padding: 12px; justify-content: center; }
+    .sidebar-footer { padding: 10px; justify-content: center; display: flex; }
+    .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+    .chart-grid { grid-template-columns: 1fr; }
+    .kanban { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-badge">● ACTION!</div>
+    <div class="brand-title">Engagement Solidaire</div>
+    <div class="brand-sub">IDF · Nord France</div>
+  </div>
+
+  <nav class="sidebar-nav">
+    <div class="nav-section-label">Navigation</div>
+    <div class="nav-item active" onclick="showSection('dashboard', this)">
+      <svg class="nav-icon" viewBox="0 0 20 20" fill="currentColor"><rect x="2" y="2" width="7" height="7" rx="1.5"/><rect x="11" y="2" width="7" height="7" rx="1.5"/><rect x="2" y="11" width="7" height="7" rx="1.5"/><rect x="11" y="11" width="7" height="7" rx="1.5"/></svg>
+      <span>Vue d'ensemble</span>
+    </div>
+    <div class="nav-item" onclick="showSection('missions', this)">
+      <svg class="nav-icon" viewBox="0 0 20 20" fill="currentColor"><path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"/><path fill-rule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clip-rule="evenodd"/></svg>
+      <span>Missions</span>
+    </div>
+    <div class="nav-item" onclick="showSection('associations', this)">
+      <svg class="nav-icon" viewBox="0 0 20 20" fill="currentColor"><path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v1h8v-1zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-1a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v1h-3zM4.75 14.094A5.973 5.973 0 004 17v1H1v-1a3 3 0 013.75-2.906z"/></svg>
+      <span>Associations</span>
+    </div>
+    <div class="nav-item" onclick="showSection('referents', this)">
+      <svg class="nav-icon" viewBox="0 0 20 20" fill="currentColor"><path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"/></svg>
+      <span>Réseau référents</span>
+    </div>
+    <div class="nav-section-label">À propos</div>
+    <div class="nav-item" onclick="showSection('about', this)">
+      <svg class="nav-icon" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"/></svg>
+      <span>Candidat</span>
+    </div>
+  </nav>
+
+  <div class="sidebar-footer">
+    <div class="author-chip">
+      <div class="author-avatar">AO</div>
+      <div>
+        <div class="author-name">Amine OUALLA</div>
+        <div class="author-role">Candidat Chef de projet</div>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<div class="main">
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div>
+      <div class="topbar-title" id="topbar-title">Vue d'ensemble — Programme Action!</div>
+      <div class="topbar-meta" id="topbar-meta">IDF + Nord France · Simulation 2025 · 30 000 collaborateurs</div>
+    </div>
+    <div class="topbar-actions">
+      <button class="btn" onclick="exportData()">
+        <svg width="13" height="13" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
+        Exporter CSV
+      </button>
+      <a href="https://github.com/amineoualla/action-solidaire" target="_blank" class="btn btn-gold">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+        GitHub
+      </a>
+    </div>
+  </div>
+
+  <!-- CONTENT -->
+  <div class="content">
+
+    <!-- DASHBOARD -->
+    <div class="section active" id="section-dashboard">
+      <div class="kpi-grid">
+        <div class="kpi-card gold">
+          <div class="kpi-label">Heures d'engagement (YTD)</div>
+          <div class="kpi-value">59 200</div>
+          <div class="kpi-sub"><span class="kpi-trend up">↑ 82%</span> de l'objectif annuel</div>
+        </div>
+        <div class="kpi-card green">
+          <div class="kpi-label">Participants uniques</div>
+          <div class="kpi-value">1 820</div>
+          <div class="kpi-sub"><span class="kpi-trend up">↑ 6.1%</span> taux de participation</div>
+        </div>
+        <div class="kpi-card blue">
+          <div class="kpi-label">Missions réalisées</div>
+          <div class="kpi-value">101</div>
+          <div class="kpi-sub">13 missions sur le terrain ce mois</div>
+        </div>
+        <div class="kpi-card purple">
+          <div class="kpi-label">Associations actives</div>
+          <div class="kpi-value">14</div>
+          <div class="kpi-sub">Satisfaction moy. <strong>4.73 / 5</strong></div>
+        </div>
+      </div>
+
+      <div class="chart-grid">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Heures d'engagement mensuelles — 2025</div>
+            <span class="badge badge-green">↑ En progression</span>
+          </div>
+          <div class="card-body">
+            <div style="position:relative; height:220px;">
+              <canvas id="chartMensuel" role="img" aria-label="Graphique barres des heures d'engagement mensuelles en 2025">Données mensuelles des heures d'engagement collaborateurs sur le programme Action! en 2025.</canvas>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Thématiques ESS</div>
+          </div>
+          <div class="card-body">
+            <div style="position:relative; height:220px;">
+              <canvas id="chartThema" role="img" aria-label="Graphique donut des thématiques ESS des missions">Répartition des missions par thématique ESS.</canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Missions récentes</div>
+          <span class="badge badge-blue">13 ce mois</span>
+        </div>
+        <div class="card-body" style="padding:0;">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Mission</th>
+                <th>Association</th>
+                <th>Région</th>
+                <th>Type</th>
+                <th>Remplissage</th>
+                <th>Statut</th>
+              </tr>
+            </thead>
+            <tbody id="recentMissions"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- MISSIONS -->
+    <div class="section" id="section-missions">
+      <div class="filters">
+        <span class="filter-label">Filtrer :</span>
+        <select class="filter-select" id="filter-region" onchange="renderKanban()">
+          <option value="all">Toutes les régions</option>
+          <option value="IDF">IDF</option>
+          <option value="Nord">Nord</option>
+        </select>
+        <select class="filter-select" id="filter-type" onchange="renderKanban()">
+          <option value="all">Tous les types</option>
+          <option value="présentiel">Présentiel</option>
+          <option value="distanciel">Distanciel</option>
+        </select>
+        <button class="btn btn-gold" onclick="exportData()" style="margin-left:auto;">↓ Exporter missions CSV</button>
+      </div>
+      <div class="kanban" id="kanbanBoard"></div>
+    </div>
+
+    <!-- ASSOCIATIONS -->
+    <div class="section" id="section-associations">
+      <div class="filters">
+        <span class="filter-label">Filtrer :</span>
+        <select class="filter-select" id="filter-assoc-region" onchange="renderAssociations()">
+          <option value="all">Toutes régions</option>
+          <option value="IDF">IDF</option>
+          <option value="Nord">Nord</option>
+        </select>
+        <button class="btn btn-gold" onclick="exportAssocData()" style="margin-left:auto;">↓ Exporter CSV</button>
+      </div>
+      <div class="assoc-grid" id="assocGrid"></div>
+    </div>
+
+    <!-- REFERENTS -->
+    <div class="section" id="section-referents">
+      <div class="filters">
+        <span class="filter-label">Filtrer :</span>
+        <select class="filter-select" id="filter-ref-region" onchange="renderReferents()">
+          <option value="all">Toutes régions</option>
+          <option value="IDF">IDF</option>
+          <option value="Nord">Nord</option>
+        </select>
+        <select class="filter-select" id="filter-ref-status" onchange="renderReferents()">
+          <option value="all">Tous statuts</option>
+          <option value="true">Actifs</option>
+          <option value="false">Inactifs</option>
+        </select>
+        <button class="btn btn-gold" onclick="exportRefData()" style="margin-left:auto;">↓ Exporter CSV</button>
+      </div>
+      <div class="card">
+        <div class="card-body" style="padding:0;">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Statut</th>
+                <th>Référent</th>
+                <th>Business Unit</th>
+                <th>Région</th>
+                <th>Ville</th>
+                <th>Missions animées</th>
+                <th>Dernier contact</th>
+              </tr>
+            </thead>
+            <tbody id="referentsTable"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ABOUT -->
+    <div class="section" id="section-about">
+      <div class="about-hero">
+        <div class="about-avatar">AO</div>
+        <div>
+          <div class="about-name">Amine OUALLA</div>
+          <div class="about-role">Candidat — Chef de projet Engagement Solidaire · TotalEnergies</div>
+          <div class="about-contacts">
+            <span class="about-contact-item">✉ amineoualla69@gmail.com</span>
+            <span class="about-contact-item">📱 +33 7 51 17 89 61</span>
+            <span class="about-contact-item">📍 Île-de-France, mobile</span>
+            <span class="about-contact-item">🎓 Master 2 — IMT Paris</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="skills-grid">
+        <div class="skill-card">
+          <div class="skill-cat">Gestion de projet</div>
+          <div>
+            <span class="skill-tag">Coordination opérationnelle</span>
+            <span class="skill-tag">Suivi KPIs</span>
+            <span class="skill-tag">Animation réseau</span>
+            <span class="skill-tag">COPIL / Webinaires</span>
+            <span class="skill-tag">Reporting</span>
+          </div>
+        </div>
+        <div class="skill-card">
+          <div class="skill-cat">Microsoft 365</div>
+          <div>
+            <span class="skill-tag">Teams</span>
+            <span class="skill-tag">SharePoint</span>
+            <span class="skill-tag">Yammer</span>
+            <span class="skill-tag">Excel / Power BI</span>
+            <span class="skill-tag">PowerPoint</span>
+          </div>
+        </div>
+        <div class="skill-card">
+          <div class="skill-cat">ESS & solidarité</div>
+          <div>
+            <span class="skill-tag">Réseau associatif</span>
+            <span class="skill-tag">Partenariats ONG</span>
+            <span class="skill-tag">Engagement bénévole</span>
+            <span class="skill-tag">Communication interne</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><div class="card-title">À propos de ce projet</div></div>
+        <div class="card-body" style="line-height:1.7; font-size:13.5px; color:var(--text-secondary);">
+          <p style="margin-bottom:10px;">Ce tableau de bord simule l'environnement de travail d'un Chef de projet Engagement Solidaire sur le périmètre IDF + Nord France dans le cadre du programme <strong style="color:var(--text-primary);">Action!</strong> de TotalEnergies.</p>
+          <p style="margin-bottom:10px;">Il couvre les quatre volets clés du poste : le <strong style="color:var(--text-primary);">pilotage des KPIs</strong> programme, la <strong style="color:var(--text-primary);">gestion des missions</strong> en vue Kanban, le <strong style="color:var(--text-primary);">réseau des associations partenaires</strong>, et l'<strong style="color:var(--text-primary);">animation des référents</strong> sur le territoire.</p>
+          <p>L'ensemble du code source, des données JSON, des templates COPIL et du plan de communication est disponible sur <a href="https://github.com/amineoualla/action-solidaire" target="_blank" style="color:var(--blue);">GitHub</a>. Aucune dépendance externe — le dashboard fonctionne directement dans le navigateur.</p>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /main -->
+
+<script>
+// ======= DATA =======
+const MISSIONS = [
+  { id:"M-001", titre:"Distribution alimentaire hebdomadaire", association:"Restos du Cœur – Paris Nord", type:"présentiel", places:10, inscrits:10, statut:"réalisée", region:"IDF", thematique:"Alimentation solidaire", date:"2025-01-15", heures:4, referent:"Sophie M.", bu:"Exploration & Production" },
+  { id:"M-002", titre:"Atelier CV & simulation d'entretien", association:"Nos Quartiers ont des Talents", type:"présentiel", places:6, inscrits:6, statut:"réalisée", region:"IDF", thematique:"Insertion professionnelle", date:"2025-01-22", heures:3, referent:"Thomas B.", bu:"Marketing & Services" },
+  { id:"M-003", titre:"Collecte & tri de vêtements", association:"Emmaüs Île-de-France", type:"présentiel", places:15, inscrits:12, statut:"réalisée", region:"IDF", thematique:"Économie circulaire", date:"2025-02-08", heures:5, referent:"Nadia K.", bu:"Raffinage & Chimie" },
+  { id:"M-004", titre:"Maraude nocturne – Paris 13e", association:"Samu Social de Paris", type:"présentiel", places:8, inscrits:8, statut:"réalisée", region:"IDF", thematique:"Solidarité urbaine", date:"2025-02-14", heures:4, referent:"Lucas D.", bu:"Gas, Renewables & Power" },
+  { id:"M-005", titre:"Mentorat étudiant – lycée prioritaire", association:"Article 1", type:"distanciel", places:20, inscrits:18, statut:"réalisée", region:"IDF", thematique:"Éducation & jeunesse", date:"2025-03-01", heures:2, referent:"Camille R.", bu:"Corporate" },
+  { id:"M-006", titre:"Rénovation salle seniors", association:"Les Petits Frères des Pauvres", type:"présentiel", places:12, inscrits:12, statut:"réalisée", region:"IDF", thematique:"Grand âge", date:"2025-03-15", heures:7, referent:"Antoine F.", bu:"Fondation TotalEnergies" },
+  { id:"M-007", titre:"Forum Associations – La Défense Coupole", association:"Multi-associations", type:"présentiel", places:50, inscrits:47, statut:"réalisée", region:"IDF", thematique:"Animation événement", date:"2025-04-03", heures:4, referent:"Amine O.", bu:"Tous périmètres" },
+  { id:"M-008", titre:"Initiation numérique – seniors", association:"Emmaus Connect", type:"présentiel", places:8, inscrits:7, statut:"réalisée", region:"Nord", thematique:"Inclusion numérique", date:"2025-04-12", heures:3, referent:"Marie-Laure V.", bu:"Exploration & Production" },
+  { id:"M-009", titre:"Chantier nature – forêt de Fontainebleau", association:"ONF Île-de-France", type:"présentiel", places:20, inscrits:20, statut:"réalisée", region:"IDF", thematique:"Environnement", date:"2025-04-26", heures:7, referent:"Paul T.", bu:"Gas, Renewables & Power" },
+  { id:"M-010", titre:"Collecte alimentaire printemps", association:"Banque Alimentaire Île-de-France", type:"présentiel", places:30, inscrits:28, statut:"réalisée", region:"IDF", thematique:"Alimentation solidaire", date:"2025-05-10", heures:4, referent:"Sophie M.", bu:"Marketing & Services" },
+  { id:"M-011", titre:"Atelier entrepreneuriat ESS", association:"France Active Nord", type:"distanciel", places:15, inscrits:11, statut:"réalisée", region:"Nord", thematique:"ESS & entrepreneuriat", date:"2025-05-22", heures:3, referent:"Julien P.", bu:"Raffinage & Chimie" },
+  { id:"M-012", titre:"Accueil bénéficiaires – site Michelet", association:"Habitat & Humanisme", type:"présentiel", places:5, inscrits:5, statut:"réalisée", region:"IDF", thematique:"Logement social", date:"2025-06-04", heures:4, referent:"Amine O.", bu:"Corporate" },
+  { id:"M-013", titre:"Hackathon solidaire – solutions ESS", association:"Ashoka France", type:"présentiel", places:25, inscrits:22, statut:"réalisée", region:"IDF", thematique:"ESS & innovation", date:"2025-06-20", heures:8, referent:"Thomas B.", bu:"Tous périmètres" },
+  { id:"M-014", titre:"Maraude hivernale – Paris 18e", association:"Utopia 56", type:"présentiel", places:8, inscrits:6, statut:"en_cours", region:"IDF", thematique:"Solidarité urbaine", date:"2025-11-28", heures:4, referent:"Lucas D.", bu:"Gas, Renewables & Power" },
+  { id:"M-015", titre:"Formation PSC1 – bénévoles locaux", association:"Croix-Rouge Française", type:"présentiel", places:12, inscrits:9, statut:"en_cours", region:"Nord", thematique:"Santé & secours", date:"2025-12-06", heures:7, referent:"Marie-Laure V.", bu:"Exploration & Production" },
+  { id:"M-016", titre:"Collecte jouets – Noël solidaire", association:"Secours Populaire Français", type:"présentiel", places:20, inscrits:14, statut:"à_pourvoir", region:"IDF", thematique:"Enfance & jeunesse", date:"2025-12-18", heures:4, referent:"Camille R.", bu:"Marketing & Services" },
+  { id:"M-017", titre:"Atelier lecture – enfants hospitalisés", association:"Le Rire Médecin", type:"présentiel", places:6, inscrits:3, statut:"à_pourvoir", region:"IDF", thematique:"Enfance & jeunesse", date:"2025-12-10", heures:3, referent:"Nadia K.", bu:"Corporate" },
+  { id:"M-018", titre:"Nettoyage plage – Côte d'Opale", association:"Surfrider Foundation", type:"présentiel", places:30, inscrits:18, statut:"à_pourvoir", region:"Nord", thematique:"Environnement", date:"2025-11-15", heures:5, referent:"Julien P.", bu:"Gas, Renewables & Power" }
+];
+
+const ASSOCIATIONS = [
+  { nom:"Restos du Cœur – Paris Nord", thematique:"Alimentation solidaire", region:"IDF", missions_actives:3, collaborateurs_accueillis:48, satisfaction:4.8 },
+  { nom:"Nos Quartiers ont des Talents", thematique:"Insertion professionnelle", region:"IDF", missions_actives:2, collaborateurs_accueillis:36, satisfaction:4.9 },
+  { nom:"Emmaüs Île-de-France", thematique:"Économie circulaire", region:"IDF", missions_actives:2, collaborateurs_accueillis:55, satisfaction:4.6 },
+  { nom:"Samu Social de Paris", thematique:"Solidarité urbaine", region:"IDF", missions_actives:2, collaborateurs_accueillis:32, satisfaction:4.7 },
+  { nom:"Article 1", thematique:"Éducation & jeunesse", region:"IDF", missions_actives:4, collaborateurs_accueillis:90, satisfaction:4.9 },
+  { nom:"Les Petits Frères des Pauvres", thematique:"Grand âge", region:"IDF", missions_actives:2, collaborateurs_accueillis:28, satisfaction:4.8 },
+  { nom:"Emmaus Connect", thematique:"Inclusion numérique", region:"IDF", missions_actives:3, collaborateurs_accueillis:42, satisfaction:4.7 },
+  { nom:"Banque Alimentaire Île-de-France", thematique:"Alimentation solidaire", region:"IDF", missions_actives:3, collaborateurs_accueillis:120, satisfaction:4.9 },
+  { nom:"France Active Nord", thematique:"ESS & entrepreneuriat", region:"Nord", missions_actives:2, collaborateurs_accueillis:22, satisfaction:4.5 },
+  { nom:"Habitat & Humanisme", thematique:"Logement social", region:"IDF", missions_actives:2, collaborateurs_accueillis:18, satisfaction:4.6 },
+  { nom:"Utopia 56", thematique:"Solidarité urbaine", region:"IDF", missions_actives:2, collaborateurs_accueillis:25, satisfaction:4.7 },
+  { nom:"Ashoka France", thematique:"ESS & innovation", region:"IDF", missions_actives:1, collaborateurs_accueillis:22, satisfaction:4.8 },
+  { nom:"Surfrider Foundation", thematique:"Environnement", region:"Nord", missions_actives:2, collaborateurs_accueillis:18, satisfaction:4.6 },
+  { nom:"Secours Populaire Français", thematique:"Alimentation solidaire", region:"IDF", missions_actives:2, collaborateurs_accueillis:60, satisfaction:4.7 }
+];
+
+const REFERENTS = [
+  { nom:"Sophie M.", bu:"Exploration & Production", region:"IDF", ville:"Paris 8e", actif:true, missions_animees:8, dernier_contact:"2025-10-15" },
+  { nom:"Thomas B.", bu:"Marketing & Services", region:"IDF", ville:"Paris 15e", actif:true, missions_animees:7, dernier_contact:"2025-10-20" },
+  { nom:"Nadia K.", bu:"Raffinage & Chimie", region:"IDF", ville:"Courbevoie", actif:true, missions_animees:5, dernier_contact:"2025-10-10" },
+  { nom:"Lucas D.", bu:"Gas, Renewables & Power", region:"IDF", ville:"La Défense", actif:true, missions_animees:6, dernier_contact:"2025-10-22" },
+  { nom:"Camille R.", bu:"Corporate", region:"IDF", ville:"Paris 1er", actif:true, missions_animees:9, dernier_contact:"2025-10-18" },
+  { nom:"Antoine F.", bu:"Fondation TotalEnergies", region:"IDF", ville:"Paris 9e", actif:true, missions_animees:4, dernier_contact:"2025-09-28" },
+  { nom:"Marie-Laure V.", bu:"Exploration & Production", region:"Nord", ville:"Lille", actif:true, missions_animees:5, dernier_contact:"2025-10-05" },
+  { nom:"Julien P.", bu:"Gas, Renewables & Power", region:"Nord", ville:"Dunkerque", actif:true, missions_animees:4, dernier_contact:"2025-10-12" },
+  { nom:"Paul T.", bu:"Gas, Renewables & Power", region:"IDF", ville:"Versailles", actif:true, missions_animees:3, dernier_contact:"2025-10-08" },
+  { nom:"Leila B.", bu:"Marketing & Services", region:"IDF", ville:"Boulogne", actif:false, missions_animees:2, dernier_contact:"2025-08-30" },
+  { nom:"Marc E.", bu:"Raffinage & Chimie", region:"Nord", ville:"Valenciennes", actif:true, missions_animees:3, dernier_contact:"2025-10-01" },
+  { nom:"Chloé F.", bu:"Corporate", region:"IDF", ville:"Issy-les-Moul.", actif:true, missions_animees:5, dernier_contact:"2025-10-19" },
+  { nom:"Romain G.", bu:"Exploration & Production", region:"Nord", ville:"Amiens", actif:true, missions_animees:2, dernier_contact:"2025-09-15" },
+  { nom:"Yasmine H.", bu:"Marketing & Services", region:"IDF", ville:"Nanterre", actif:true, missions_animees:4, dernier_contact:"2025-10-14" }
+];
+
+// ======= NAV =======
+function showSection(id, el) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('section-' + id).classList.add('active');
+  el.classList.add('active');
+
+  const titles = { dashboard:'Vue d\'ensemble — Programme Action!', missions:'Gestion des missions', associations:'Associations partenaires', referents:'Réseau des référents', about:'Profil candidat' };
+  document.getElementById('topbar-title').textContent = titles[id] || '';
+}
+
+// ======= CHARTS =======
+function initCharts() {
+  const monthly = [4200,3800,5100,6200,5800,7100,3200,2100,5400,6300,4800,5200];
+  const labels = ['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc'];
+
+  new Chart(document.getElementById('chartMensuel'), {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        label: 'Heures d\'engagement',
+        data: monthly,
+        backgroundColor: labels.map((_,i) => i < 10 ? 'rgba(232,160,32,0.85)' : 'rgba(232,160,32,0.4)'),
+        borderRadius: 4,
+        borderSkipped: false
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { display: false }, ticks: { font: { size: 11 } } },
+        y: { grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { font: { size: 11 }, callback: v => v >= 1000 ? (v/1000).toFixed(0)+'k' : v } }
+      }
+    }
+  });
+
+  new Chart(document.getElementById('chartThema'), {
+    type: 'doughnut',
+    data: {
+      labels: ['Alimentation', 'Éducation', 'Environnement', 'Insertion', 'Numérique', 'Autres'],
+      datasets: [{
+        data: [28, 18, 14, 12, 10, 18],
+        backgroundColor: ['#E8A020','#2B6CB8','#2D9E6B','#6B4FA8','#C94040','#8A9AAA'],
+        borderWidth: 2,
+        borderColor: '#fff'
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: 'bottom',
+          labels: { font: { size: 10 }, boxWidth: 10, padding: 8 }
+        }
+      }
+    }
+  });
+}
+
+// ======= RECENT MISSIONS =======
+function renderRecentMissions() {
+  const tbody = document.getElementById('recentMissions');
+  const recent = MISSIONS.slice(-6).reverse();
+  tbody.innerHTML = recent.map(m => {
+    const pct = Math.round(m.inscrits / m.places * 100);
+    const fillClass = pct === 100 ? 'fill-full' : pct >= 60 ? 'fill-mid' : 'fill-low';
+    const statusBadge = m.statut === 'réalisée' ? 'badge-green' : m.statut === 'en_cours' ? 'badge-blue' : 'badge-gold';
+    const statusLabel = m.statut === 'réalisée' ? 'Réalisée' : m.statut === 'en_cours' ? 'En cours' : 'À pourvoir';
+    return `<tr>
+      <td><strong>${m.titre}</strong></td>
+      <td style="color:var(--text-secondary);font-size:12px;">${m.association}</td>
+      <td><span class="badge badge-gray">${m.region}</span></td>
+      <td style="font-size:12px;color:var(--text-secondary);">${m.type}</td>
+      <td>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <div class="progress-bar" style="width:60px;">
+            <div class="progress-fill" style="width:${pct}%;background:${pct===100?'var(--green)':pct>=60?'var(--gold)':'var(--red)'}"></div>
+          </div>
+          <span class="mission-fill ${fillClass}" style="font-size:11px;">${m.inscrits}/${m.places}</span>
+        </div>
+      </td>
+      <td><span class="badge ${statusBadge}">${statusLabel}</span></td>
+    </tr>`;
+  }).join('');
+}
+
+// ======= KANBAN =======
+function renderKanban() {
+  const regionF = document.getElementById('filter-region').value;
+  const typeF = document.getElementById('filter-type').value;
+  let missions = MISSIONS.filter(m =>
+    (regionF === 'all' || m.region === regionF) &&
+    (typeF === 'all' || m.type === typeF)
+  );
+
+  const cols = [
+    { key:'à_pourvoir', label:'À pourvoir', color:'#C94040' },
+    { key:'en_cours',   label:'En cours',   color:'#E8A020' },
+    { key:'réalisée',  label:'Réalisées',  color:'#2D9E6B' }
+  ];
+
+  document.getElementById('kanbanBoard').innerHTML = cols.map(col => {
+    const items = missions.filter(m => m.statut === col.key);
+    const cards = items.map(m => {
+      const pct = Math.round(m.inscrits / m.places * 100);
+      const fillClass = pct === 100 ? 'fill-full' : pct >= 60 ? 'fill-mid' : 'fill-low';
+      return `<div class="mission-card">
+        <div class="mission-title">${m.titre}</div>
+        <div class="mission-assoc">${m.association}</div>
+        <div class="mission-meta">
+          <span class="mission-tag">${m.region}</span>
+          <span class="mission-tag">${m.type}</span>
+          <span class="mission-fill ${fillClass}">${m.inscrits}/${m.places}</span>
+        </div>
+      </div>`;
+    }).join('');
+    return `<div class="kanban-col">
+      <div class="kanban-col-header">
+        <div class="kanban-col-title" style="color:${col.color}">${col.label}</div>
+        <span class="kanban-count" style="background:${col.color}">${items.length}</span>
+      </div>
+      ${cards || '<p style="font-size:12px;color:var(--text-muted);text-align:center;padding:16px;">Aucune mission</p>'}
+    </div>`;
+  }).join('');
+}
+
+// ======= ASSOCIATIONS =======
+function renderAssociations() {
+  const regionF = document.getElementById('filter-assoc-region').value;
+  const list = ASSOCIATIONS.filter(a => regionF === 'all' || a.region === regionF);
+  document.getElementById('assocGrid').innerHTML = list.map(a => {
+    const stars = '★'.repeat(Math.round(a.satisfaction)) + '☆'.repeat(5 - Math.round(a.satisfaction));
+    return `<div class="assoc-card">
+      <div class="assoc-name">${a.nom}</div>
+      <div class="assoc-thema">${a.thematique} · ${a.region}</div>
+      <div class="assoc-stats">
+        <div>
+          <div class="assoc-stat-label">Missions actives</div>
+          <div class="assoc-stat-value">${a.missions_actives}</div>
+        </div>
+        <div>
+          <div class="assoc-stat-label">Collaborateurs</div>
+          <div class="assoc-stat-value">${a.collaborateurs_accueillis}</div>
+        </div>
+        <div>
+          <div class="assoc-stat-label">Satisfaction</div>
+          <div class="stars">${stars}</div>
+          <div style="font-size:11px;color:var(--text-secondary);">${a.satisfaction}/5</div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ======= REFERENTS =======
+function renderReferents() {
+  const regionF = document.getElementById('filter-ref-region').value;
+  const statusF = document.getElementById('filter-ref-status').value;
+  const list = REFERENTS.filter(r =>
+    (regionF === 'all' || r.region === regionF) &&
+    (statusF === 'all' || String(r.actif) === statusF)
+  );
+  document.getElementById('referentsTable').innerHTML = list.map(r => `
+    <tr>
+      <td><span class="status-dot ${r.actif ? 'active' : 'inactive'}"></span></td>
+      <td><strong>${r.nom}</strong></td>
+      <td style="font-size:12px;color:var(--text-secondary);">${r.bu}</td>
+      <td><span class="badge badge-gray">${r.region}</span></td>
+      <td style="font-size:12px;">${r.ville}</td>
+      <td style="font-weight:600;color:var(--navy);">${r.missions_animees}</td>
+      <td style="font-size:12px;color:var(--text-secondary);">${r.dernier_contact}</td>
+    </tr>
+  `).join('');
+}
+
+// ======= EXPORT =======
+function toCSV(data) {
+  const h = Object.keys(data[0]).join(';');
+  const rows = data.map(r => Object.values(r).map(v => `"${String(v).replace(/"/g,'""')}"`).join(';'));
+  return '\uFEFF' + [h, ...rows].join('\r\n');
+}
+function download(csv, name) {
+  const a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+  a.download = name + '_' + new Date().toISOString().slice(0,10) + '.csv';
+  a.click();
+}
+function exportData() { download(toCSV(MISSIONS), 'missions_action'); }
+function exportAssocData() { download(toCSV(ASSOCIATIONS), 'associations_action'); }
+function exportRefData() { download(toCSV(REFERENTS), 'referents_action'); }
+
+// ======= INIT =======
+initCharts();
+renderRecentMissions();
+renderKanban();
+renderAssociations();
+renderReferents();
+</script>
+</body>
+</html>
